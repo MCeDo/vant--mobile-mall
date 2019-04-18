@@ -1,6 +1,7 @@
 import axios from 'axios';
-import qs from 'qs';
+// import qs from 'qs';
 import { Dialog } from 'vant';
+import RouterModel from '../../vue/router/index'
 
 const instance = axios.create({
   timeout: 5000,
@@ -10,10 +11,13 @@ const instance = axios.create({
 instance.interceptors.request.use(
   config => {
     if (config.method === 'post' || config.method === 'put') {
-      config.data = qs.stringify(config.data);
+      if (config.headers['Content-Type'] == undefined) {
+        config.headers['Content-Type'] = 'application/json';
+        config.data = JSON.stringify(config.data);
+      }
     }
     if (!config.headers.Authorization) {
-      config.headers.Authorization = `Bearer ${window.localStorage.getItem(
+      config.headers.token = `${window.localStorage.getItem(
         'Authorization'
       ) || ''}`;
     }
@@ -24,31 +28,27 @@ instance.interceptors.request.use(
 
 instance.interceptors.response.use(
   res => {
-    if (!res.data.success) {
-      switch (res.data.code) {
-        case 422: {
-          const flag = Array.isArray(res.data.data) && res.data.data.length;
-          Dialog.alert({
-            message: flag ? res.data.data[0].message : res.data.message
-          });
-          break;
-        }
-        case 401:
-          break;
-        case 404:
-          break;
-        default:
-          break;
-      }
+    const data = res.data;
+    if (data.code == 401) {
+      Dialog.alert({
+        message: data.msg
+      });
+      RouterModel.replace({path: 'login'})
       return Promise.reject(res);
     }
     return res;
   },
   error => {
-    Dialog.alert({
-      title: '警告',
-      message: error.message
-    });
+    const res = error.response;
+    const data = res.data;
+    switch (res.status) {
+      case 401: {
+        Dialog.alert({
+          title: '警告',
+          message: data.msg
+        });
+      }
+    }
     return Promise.reject(error);
   }
 );

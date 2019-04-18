@@ -26,7 +26,7 @@
 				<div>待收货</div>
 			</van-col>
 			<van-col span="6">
-				<div class="order_status_icon" @click="$router.push({path: '/user/refund/list'})">
+				<div class="order_status_icon">
 					<van-icon name="shouhouguanli" />
 				</div>
 				<div>退款售后</div>

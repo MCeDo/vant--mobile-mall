@@ -6,8 +6,8 @@
 		</div>
 
 		<van-cell-group class="payment_group">
-			<van-cell title="订单编号" value="25874455112" />
-			<van-cell title="实付金额"><span class="red">{{898 | yuan}}</span></van-cell>
+			<van-cell title="订单编号" :value="this.order.id" />
+			<van-cell title="实付金额"><span class="red">{{this.order.totalPrice | yuan}}</span></van-cell>
 		</van-cell-group>
 
 		<div class="pay_way_group">
@@ -34,6 +34,7 @@
 </template>
 
 <script>
+import { ORDER } from '@/api/order';
 import { Radio, RadioGroup } from 'vant';
 
 export default {
@@ -41,6 +42,12 @@ export default {
 
   data() {
     return {
+      order: {
+		  totalPrice: this.$route.params.totalPrice,
+		  id: this.$route.params.id,
+		  status: '',
+		  paidTime: undefined
+	  },
       isSubmit: false,
       payWay: 'ali'
     };
@@ -48,12 +55,18 @@ export default {
 
   methods: {
     paySubmit() {
-      this.$router.push({
-        name: 'paymentStatus',
-        params: {
-          status: 'success'
-        }
-      });
+      // TODO 调用支付宝/微信支付接口
+	  this.order.status = '1';
+	  this.order.paidTime = new Date();
+      this.$reqPut(ORDER, this.order).then(() => {
+		  this.$router.push({
+			  name: 'paymentStatus',
+			  params: {
+				  status: 'success'
+			  }
+		  });
+	  });
+
     }
   },
 

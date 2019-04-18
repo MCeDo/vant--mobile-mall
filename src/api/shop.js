@@ -1,4 +1,5 @@
-export const HOME_module = '/home';
+const BASE = '/shop'
+export const HOME_module = BASE+'/home';
 export const ALL_GOODS = '/moreGoods';
 
 export const SHOPINFO = '/shop-info';

@@ -21,8 +21,10 @@ const UserInfo_SetPassword = asyncLoader(
 );
 
 const UserOrderEntityList = asyncLoader('user/order-entity-list');
+const UserSellOrderEntityList = asyncLoader('user/sell-order-entity-list');
 const UserOrderEleList = asyncLoader('user/order-ele-list');
 const UserRefundList = asyncLoader('user/refund-list');
+const UserOrderEntityDetail = asyncLoader('user/order-entity-detail');
 
 const Tabbar = () =>
   import(/* webpackChunkName: "Tabbar" */ '@/vue/components/Tabbar/');
@@ -136,5 +138,15 @@ export default [
     path: '/user/refund/list',
     name: 'user-refund-list',
     component: UserRefundList
+  },
+  {
+    path: '/user/order/detail/:id',
+    name: 'user-order-detail',
+    component: UserOrderEntityDetail
+  },
+  {
+    path: '/user/sell/order/list/:active',
+    name: 'sell-order-list',
+    component: UserSellOrderEntityList
   }
 ];

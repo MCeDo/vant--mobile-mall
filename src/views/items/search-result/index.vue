@@ -43,7 +43,7 @@ import ItemCardHori from '@/vue/components/item-card-hori/';
 import { Search, List } from 'vant';
 import { throttle } from 'lodash';
 
-import loadMore from '@/vue/mixin/list-load-more';
+import 	loadMore from '@/vue/mixin/list-load-more';
 import scrollFixed from '@/vue/mixin/scroll-fixed';
 
 export default {

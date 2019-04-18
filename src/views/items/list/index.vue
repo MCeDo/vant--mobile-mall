@@ -1,20 +1,20 @@
 <template>
-	<div class="item_list over-hide">
-
-		<form action="/search">
-			<van-search
+  <div class="item_list over-hide">
+    <form action="/search">
+      <van-search
         placeholder="请输入商品名称"
         v-model="searchVal"
-        showAction 
+        @search="searchData"
+        showAction
       />
-		</form>
+    </form>
 
-		<van-tabs v-model="tabActive" @disabled="toggleFilterModal(true)">
-			<van-tab
-				v-for="(tab, tabIndex)  in tabsItem"
-			 	:title="tab.name"
-				:key="tab.type"
-				:disabled="tab.sort === false"
+    <van-tabs v-model="tabActive" @disabled="toggleFilterModal(true)">
+      <van-tab
+        v-for="(tab, tabIndex) in tabsItem"
+        :title="tab.name"
+        :key="tab.type"
+        :disabled="tab.sort === false"
       >
         <InfinityScroll
           :ref="'tabScrolls' + tabIndex"
@@ -32,28 +32,24 @@
             />
           </item-group>
         </InfinityScroll>
-			</van-tab>
-		</van-tabs>
+      </van-tab>
+    </van-tabs>
 
-		<van-popup
-			class="filterItem"
-			v-model="filterItemShow"
-			position="right"
-		>
-			<ul>
-				<li
-					v-for="(li, i) in filterItem"
-					:key="i"
-					@click="filterMethod(i)"
-					:class="{filter_active: li.isActive}"
+    <van-popup class="filterItem" v-model="filterItemShow" position="right">
+      <ul>
+        <li
+          v-for="(li, i) in filterItem"
+          :key="i"
+          @click="filterMethod(i)"
+          :class="{ filter_active: li.isActive }"
         >
-						{{li.name}}
-					<van-icon name="success" v-show="li.isActive" class="float-r" />
-				</li>
-			</ul>
-		</van-popup>
+          {{ li.name }}
+          <van-icon name="success" v-show="li.isActive" class="float-r" />
+        </li>
+      </ul>
+    </van-popup>
 
-		<!-- <transition name="fade">
+    <!-- <transition name="fade">
 			<van-icon
 				name="arrowupcircle"
 				class="backTop"
@@ -61,11 +57,11 @@
 				v-show="showArrow"
 			/>
 		</transition> -->
-	</div>
+  </div>
 </template>
 
 <script>
-import { GOODS_SEARCH } from '@/api/goods';
+import { GOODS, GOODS_CATEGORY } from '@/api/goods';
 
 import ItemGroup from '@/vue/components/item-group';
 import ItemCardHori from '@/vue/components/item-card-hori/';
@@ -80,15 +76,15 @@ export default {
       type: String,
       default: ''
     },
-    itemClass: {
-      type: [String, Number],
-      default: ''
+    cateId: {
+      type: Number,
+      default: undefined
     }
   },
 
   data() {
     return {
-      listApi: GOODS_SEARCH,
+      listApi: GOODS,
       shop_id: 1,
       tabActive: 0,
       tabsItem: [
@@ -100,18 +96,9 @@ export default {
       is_haitao: 0,
       filterItem: [
         {
+          id: undefined,
           name: '全部',
-          filterType: 2,
-          isActive: true
-        },
-        {
-          name: '店铺商品',
           filterType: 0,
-          isActive: false
-        },
-        {
-          name: '海淘商品',
-          filterType: 1,
           isActive: false
         }
       ],
@@ -130,19 +117,38 @@ export default {
   },
 
   created() {
+    this.getAllCate();
     // this.scrollShowArrow = throttle(this.scrollShowArrow, 100);
   },
 
   methods: {
+    searchData() {
+      console.log('search' + this.searchVal);
+      const { tabActive: i } = this;
+      this.tabsItem[i].items = [];
+      const targetScroll = this.$refs[`tabScrolls${i}`][0];
+      targetScroll && targetScroll.resetInit();
+    },
+    getAllCate() {
+      this.$reqGet(GOODS_CATEGORY).then(res => {
+        const data = res.data.data;
+        data.records.forEach((item, index) => {
+          item.id == this.cateId
+            ? (item.isActive = true)
+            : (item.isActive = false);
+          item.filterType = index + 1;
+          this.filterItem.push(item);
+        });
+      });
+    },
     onLoad(i, items) {
       this.tabsItem[i].items.push(...items);
     },
     beforeRequest() {
       return {
         params: {
-          q: this.searchVal,
-          shop_id: this.shop_id,
-          cid: this.itemClass,
+          name: this.searchVal,
+          cate: this.cateId,
           sort: this.sortVal,
           is_haitao: this.isHaitao
         }
@@ -177,6 +183,7 @@ export default {
       const filterType = this.filterItem[i].filterType;
       if (filterType === this.isHaitao) return;
 
+      this.cateId = this.filterItem[i].id;
       this.isHaitao = filterType;
       this.activeFilter(i);
       this.toggleFilterModal(false);

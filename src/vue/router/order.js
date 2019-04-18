@@ -11,7 +11,7 @@ const Tabbar = () =>
 export default [
   {
     path: '/order',
-    name: 'cart',
+    name: 'order',
     meta: {
       login: true
     },

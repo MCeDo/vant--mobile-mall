@@ -2,7 +2,7 @@ export default {
   data() {
     return {
       pages: {
-        perPage: 8,
+        limit: 8,
         currPage: 1,
         pageCount: 1
       },
@@ -43,18 +43,18 @@ export default {
       this.loading = false;
     },
     setPages(page = {}) {
-      this.isEmpty = page.totalCount === 0;
-      if (page.totalCount <= this.pages.perPage) {
+      this.isEmpty = page.total === 0;
+      if (page.total <= this.pages.size) {
         // 不满一页
         this.isFinished();
       } else {
         // 下一页
-        this.nextPage(page.pageCount);
+        this.nextPage(page.current);
       }
     },
     resetData() {
       this.pages = {
-        perPage: 8,
+        limit: 8,
         currPage: 1,
         pageCount: 1
       };

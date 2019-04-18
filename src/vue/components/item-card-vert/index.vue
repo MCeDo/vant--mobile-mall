@@ -8,7 +8,7 @@
 			<div v-if="$slots.mask" class="item_img_mask">
 				<slot name="mask"></slot>
 			</div>
-			<img v-lazy="goods.pic_url">
+			<img v-lazy="goods.images[0].picUrl">
 			<div class="item_image_desc">{{goodsStatusToMe}}</div>
 		</div>
 		<div class="item_card_name">

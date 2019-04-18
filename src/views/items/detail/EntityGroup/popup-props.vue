@@ -6,8 +6,8 @@
 			<van-cell-group>
 				<van-cell v-for="(str, i) in propsStr" :key="i">
 					<van-row>
-						<van-col span="8">{{str[0]}}</van-col>
-						<van-col span="16">{{str[1]}}</van-col>
+						<van-col span="8">{{str.key}}</van-col>
+						<van-col span="16">{{str.value}}</van-col>
 					</van-row>
 				</van-cell>
 			</van-cell-group>

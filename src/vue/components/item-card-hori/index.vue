@@ -9,7 +9,7 @@
 				<div v-if="$slots.mask" class="item_img_mask">
 					<slot name="mask"></slot>
 				</div>
-				<img v-lazy="goods.pic_url">
+				<img v-lazy="goods.images[0].picUrl">
 				<div class="item_image_desc">{{goodsStatusToMe}}</div>
 			</div>
 
@@ -19,12 +19,16 @@
 					<span v-if="$slots.icon" class="item_card_icon"><slot name="icon"></slot></span>
 					{{goods.name}}
 				</div>
-
+				<div class="item_card_name">
+					<span v-if="$slots.icon" class="item_card_icon"><slot name="icon"></slot></span>
+					<!--{{goods.name}}-->
+					发布者：<span>{{goods.username}}</span>
+				</div>
 				<div class="item_card_info_desc">{{goods.sell_point}}</div>
 
 				<div class="item_card_footer">
 					<div class="footer_price">
-						<span>{{goods.sales_price | yuan}}</span>
+						<span>{{goods.price | yuan}}</span>
 						<span class="marketPrice" v-if="goods.market_price">{{goods.market_price | yuan}}</span>
 					</div>
 

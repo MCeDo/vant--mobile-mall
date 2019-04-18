@@ -1,56 +1,57 @@
 <template>
-	<div>
-		<md-field-group>
-			<md-field
-				v-model="account"
-				icon="username"
-        placeholder="随便输"
-				right-icon="clear-full"
+  <div>
+    <md-field-group>
+      <md-field
+        v-model="user.username"
+        icon="username"
+        placeholder="admin"
+        right-icon="clear-full"
         v-validate="'required'"
         name="user"
         data-vv-as="帐号"
-				@right-click="clearText"
+        @right-click="clearText"
       />
 
-			<md-field
-				v-model="password"
-				icon="lock"
-        placeholder="随便输"
-				:type="visiblePass ? 'text' : 'password'"
-				:right-icon="visiblePass ? 'eye-open' : 'eye-close'"
+      <md-field
+        v-model="user.password"
+        icon="lock"
+        placeholder="123456"
+        :type="visiblePass ? 'text' : 'password'"
+        :right-icon="visiblePass ? 'eye-open' : 'eye-close'"
         v-validate="'required'"
         data-vv-as="密码"
         name="password"
-				@right-click="visiblePass = !visiblePass" 
+        @right-click="visiblePass = !visiblePass"
       />
 
-			<div class="clearfix">
-				<div class="float-r">
+      <div class="clearfix">
+        <div class="float-r">
           <router-link to="/login/forget">忘记密码</router-link>
         </div>
-			</div>
+      </div>
 
-			<van-button 
-        size="large" 
-        type="danger" 
-        :loading="isLogining" 
+      <van-button
+        size="large"
+        type="danger"
+        :loading="isLogining"
         @click="loginSubmit"
-      >登录</van-button>
-		</md-field-group>
+        >登录</van-button
+      >
+    </md-field-group>
 
-		<div class="register clearfix">
-			<div class="float-l connect">
-				<span @click="showKefu = true">联系客服</span>
-			</div>
-			<div class="float-r">
+    <div class="register clearfix">
+      <div class="float-l connect">
+        <span @click="showKefu = true">联系客服</span>
+      </div>
+      <div class="float-r">
         <router-link to="/login/registerGetCode">免费注册</router-link>
       </div>
-		</div>
+    </div>
 
-		<van-popup v-model="showKefu">
-			<md-kefu mobile="16454193338" />
-		</van-popup>
-	</div>
+    <van-popup v-model="showKefu">
+      <md-kefu mobile="16454193338" />
+    </van-popup>
+  </div>
 </template>
 
 <script>
@@ -59,7 +60,7 @@ import fieldGroup from '@/vue/components/field-group/';
 import md_kefu from '@/vue/components/md-kefu/';
 
 import { USER_LOGIN, USER_PROFILE } from '@/api/user';
-import { setLocalStorage } from 'core/utils/local-storage';
+import { setLocalStorage, getLocalStorage } from 'core/utils/local-storage';
 import { emailReg, mobileReg } from '@/core/regexp';
 
 import { Popup, Toast } from 'vant';
@@ -69,8 +70,10 @@ export default {
 
   data() {
     return {
-      account: '',
-      password: '',
+      user: {
+        username: 'admin',
+        password: '123456'
+      },
       visiblePass: false,
       showKefu: false,
       isLogining: false
@@ -92,10 +95,10 @@ export default {
     },
 
     async login() {
-      const loginData = this.getLoginData();
-      const { data } = await this.$reqGet(USER_LOGIN, loginData);
+      const { data } = await this.$reqPost(USER_LOGIN, this.user);
       setLocalStorage({
-        Authorization: data.data.access_token
+        Authorization: data.data.token,
+        userId: data.data.userId
       });
     },
 
@@ -115,13 +118,14 @@ export default {
     async getUserProfile() {
       const {
         data: { data }
-      } = await this.$reqGet(USER_PROFILE);
+      } = await this.$reqGet(USER_PROFILE+getLocalStorage('userId').userId);
 
+      console.log(data)
       setLocalStorage({
         avatar: data.avatar,
-        user_id: data.user_id,
-        background_image: data.background_image,
-        nick_name: data.nick_name
+        background_image: data.avatar,
+        nickname: data.nickname,
+        username: data.username
       });
 
       this.routerRedirect();

@@ -1,31 +1,36 @@
 <template>
-	<div class="class_tree clearfix">
-		<ul class="class_tree_nav">
-			<li
-				v-for="(item ,index) in list"
-				:key="item.id"
-				:class="{active_nav: navActive == index}"
-				@click="navclick(index)">
-				{{item.name}}
-			</li>
-		</ul>
-		<div class="class_tree_content">
-			<div class="class_tree_all">
-				<span @click="allClick">全部 <i class="van-icon van-icon-arrow"></i></span>
-			</div>
-			<div class="class_tree_items_wrap clearfix">
-				<div @click="classClick(item.id)" :key="i" v-for="(item, i) in goods">
-					<div class="class_tree_item_img">
-            <img :src="item.pic_url" :alt="item.name">
+  <div class="class_tree clearfix">
+    <ul class="class_tree_nav">
+      <li
+        v-for="(item, index) in list"
+        :key="item.id"
+        :class="{ active_nav: navActive == index }"
+        @click="navclick(index)"
+      >
+        {{ item.name }}
+      </li>
+    </ul>
+    <div class="class_tree_content">
+      <div class="class_tree_all">
+        <span @click="allClick"
+          >全部 <i class="van-icon van-icon-arrow"></i
+        ></span>
+      </div>
+      <div class="class_tree_items_wrap clearfix">
+        <div @click="classClick(item.id)" :key="i" v-for="(item, i) in goods">
+          <div class="class_tree_item_img">
+            <img :src="item.images[0].picUrl" :alt="item.name" />
           </div>
-					<div class="class_tree_item_name">{{item.name}}</div>
-				</div>
-			</div>
-		</div>
-	</div>
+          <div class="class_tree_item_name">{{ item.name }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
+import { GOODS } from '@/api/goods';
+
 export default {
   name: 'class-tree',
 
@@ -48,8 +53,17 @@ export default {
     const navActive =
       this.activeIndex >= this.list.length ? 0 : this.activeIndex;
     return {
-      navActive
+      navActive,
+      item: [{
+      	id: 1,
+		  picUrl: '//img.yzcdn.cn/upload_files/2017/07/02/af5b9f44deaeb68000d7e4a711160c53.jpg',
+		  name: '测测'
+	  }]
     };
+  },
+
+  activated() {
+    this.navclick(1);
   },
 
   computed: {
@@ -61,14 +75,20 @@ export default {
   },
 
   methods: {
-    allClick() {
-      this.$emit('all-click');
+    allClick: function() {
+      console.log('all-click', this.list[this.navActive].id);
+      this.$emit('all-click', this.list[this.navActive].id);
     },
     navclick(i) {
-      this.navActive = i;
-      this.$emit('nav-click', i);
+      this.$reqGet(`${GOODS}/`, {limit: 10, page: 1, cate: this.list[i].id}).then(res => {
+        const data = res.data.data;
+        this.list[i].children = data.records;
+        this.navActive = i;
+        this.$emit('nav-click', i);
+      });
     },
     classClick(id) {
+      console.log('class click：' + id);
       this.$emit('class-click', id);
     }
   }

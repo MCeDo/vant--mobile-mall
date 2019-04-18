@@ -43,7 +43,7 @@ export default [
     name: 'list',
     component: asyncLoader('items/list'),
     props: route => ({
-      itemClass: +route.query.itemClass
+      cateId: +route.query.cateId
     })
   }
 ];

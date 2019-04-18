@@ -1,17 +1,56 @@
 <template>
-	<van-address-edit
-		style="background-color: #fff;"
-		:areaList="areaList"
-		:addressInfo="addressInfo"
-		:isSaving="isSave"
-		showPostal
-		@save="save"
-	/>
+  <van-cell-group>
+    <van-field
+      v-model="address.consignee"
+      required
+      clearable
+      label="收件人"
+      placeholder="请输入收件人"
+    />
+
+      <van-field
+              v-model="address.userId"
+              required
+              clearable
+              label="收件人ID"
+              v-show="false"
+      />
+
+    <van-field
+      v-model="address.phone"
+      label="联系方式"
+      placeholder="请输入联系方式"
+      required
+    />
+    <van-cell
+      title="学校"
+      :value="address.school"
+      isLink
+      @click.native="showSchoolList"
+    />
+    <van-actionsheet
+      v-model="showSchool"
+      :actions="schoolList"
+      @select="selectSchool"
+    />
+    <van-field
+      v-model="address.address"
+      label="详细地址"
+      placeholder="请输入详细地址"
+      required
+    />
+
+	  <van-button size="large" type="info" round style="margin-top: 10%;" @click="save">
+		  <span v-show="this.addressId == undefined">添加地址</span>
+		  <span v-show="this.addressId != undefined">修改地址</span>
+	  </van-button>
+  </van-cell-group>
 </template>
 
 <script>
-import { AddressEdit } from 'vant';
-import areaList from './area.json';
+import { AddressEdit, Field, Actionsheet,Button } from 'vant';
+// import areaList from './area.json';
+import { ADDRESS } from '@/api/user';
 
 export default {
   name: 'address-edit',
@@ -22,13 +61,40 @@ export default {
 
   data() {
     return {
-      areaList,
+      schoolList: [
+        {
+          name: '广东技术师范大学'
+        },
+        {
+          name: '华南师范大学'
+        },
+        {
+          name: '华南理工大学'
+        },
+        {
+          name: '暨南大学'
+        },
+        {
+          name: '中山大学'
+        }
+      ],
+      showSchool: false,
       isSave: false,
-      addressInfo: {}
+      address: {
+        id: this.addressId,
+        userId: undefined,
+        consignee: '',
+        phone: '',
+        school: '',
+        address: '',
+        defaultAddress: 0
+      },
+      init: this.initData()
     };
   },
 
   activated() {
+    console.log(this.address)
     setTimeout(() => {
       this.addressInfo = {
         id: this.addressId,
@@ -45,14 +111,43 @@ export default {
   },
 
   methods: {
-    save(data) {
-      this.$toast('成功');
-      console.log(data);
+    initData() {
+      if (this.addressId == undefined) {
+        return;
+      }
+      this.$reqGet(ADDRESS+'/'+this.addressId).then(res => {
+        const data = res.data.data;
+        this.address = data;
+        return data;
+      });
+    },
+    showSchoolList() {
+      this.showSchool = true;
+    },
+    selectSchool(data) {
+      this.address.school = data.name;
+      this.showSchool = false;
+    },
+    save() {
+      let req = undefined;
+      if (this.addressId == undefined) req = this.$reqPost;
+      else req = this.$reqPut;
+      console.log(this.address);
+      req(ADDRESS, this.address).then(res => {
+        console.log(res);
+        if (res.status == 200) {
+          this.$toast('成功');
+          this.$router.push({path: '/user/address'});
+        }
+      })
     }
   },
 
   components: {
-    [AddressEdit.name]: AddressEdit
+    [AddressEdit.name]: AddressEdit,
+    [Actionsheet.name]: Actionsheet,
+    [Button.name]: Button,
+    [Field.name]: Field
   }
 };
 </script>

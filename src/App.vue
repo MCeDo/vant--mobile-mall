@@ -1,5 +1,6 @@
 <template>
 <div id="app">
+  <router-view name="myHeader"></router-view>
   <keep-alive>
     <router-view class="view-router"  v-if="$route.meta.keepAlive"></router-view>
   </keep-alive>

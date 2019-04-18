@@ -1,13 +1,13 @@
 <template>
   <div class="order_list over-hide">
-    <van-tabs 
-      v-model="activeIndex" 
-      :swipe-threshold="5" 
+    <van-tabs
+      v-model="activeIndex"
+      :swipe-threshold="5"
       click="handleTabClick"
     >
-      <van-tab 
-        v-for="(tab, tabIndex) in tabsItem" 
-        :title="tab.name" 
+      <van-tab
+        v-for="(tab, tabIndex) in tabsItem"
+        :title="tab.name"
         :key="tab.type"
       >
         <InfinityScroll
@@ -25,22 +25,20 @@
           >
             <div>
               <van-card
-                v-for="(goods, goodsI) in el.orderItems"
                 class="order_list--van-card"
-                :key="goodsI"
-                :title="goods.item_name"
-                :desc="goods.sku_props_str"
-                :num="goods.quantity"
-                :price="(goods.price / 100).toFixed(2)"
-                :thumb="goods.pic_url"
+                :key="el.id"
+                :desc="el.productName"
+                :num="el.count"
+                :price="(el.price / 100).toFixed(2)"
+                :thumb="el.pic_url"
                 @click.native="toOrderDetail(i)"
               />
-              <div class="order_list--total">合计: {{el.total_fee | yuan}}（含运费{{el.post_fee | yuan}}）</div>
+              <div class="order_list--total">合计: {{el.totalPrice | yuan}}（含运费{{el.post_fee | yuan}}）</div>
             </div>
             <component
               slot="footer"
               :is="'status' + el.status"
-              :reminder="el.is_can_reminder"
+              :reminder="true"
               @handle="actionHandle($event, i)"
             />
           </van-panel>
@@ -51,26 +49,21 @@
 </template>
 
 <script>
-import { ORDER_LIST } from '@/api/order';
+import { ORDER } from '@/api/order';
 
 import { Tab, Tabs, Panel, Card, List } from 'vant';
-import status10 from './handle-status-10';
-import status20 from './handle-status-20';
-import status25 from './handle-status-25';
-import status30 from './handle-status-30';
-import status40 from './handle-status-40';
-import status50 from './handle-status-50';
-import status60 from './handle-status-60';
-import status70 from './handle-status-70';
+import status0 from './handle-status-10';
+import status1 from './handle-status-20';
+import status2 from './handle-status-2';
+import status3 from './handle-status-3';
 
 import InfinityScroll from '@/vue/components/infinity-scroll';
 
 const STATUS_TEXT = {
-  10: '待付款',
-  20: '待发货',
-  25: '部分发货',
-  30: '待收货',
-  40: '已完成',
+  0: '待付款',
+  1: '待发货',
+  2: '待收货',
+  3: '已完成',
   50: '退款成功',
   60: '交易关闭',
   70: '交易关闭'
@@ -89,33 +82,33 @@ export default {
   data() {
     const activeIndex = this.active;
     return {
-      listApi: ORDER_LIST,
+      listApi: ORDER,
       shop_id: 1,
       activeIndex,
       tabsItem: [
         {
           name: '全部',
-          status: 0,
+          status: undefined,
           items: []
         },
         {
           name: '待付款',
-          status: 10,
+          status: 0,
           items: []
         },
         {
           name: '待发货',
-          status: 20,
+          status: 1,
           items: []
         },
         {
           name: '待收货',
-          status: 30,
+          status: 2,
           items: []
         },
         {
           name: '已完成',
-          status: 40,
+          status: 3,
           items: []
         }
       ]
@@ -155,16 +148,18 @@ export default {
       await this.$dialog.confirm({
         message: '请确认收到货物, 确认收货后无法撤销!'
       });
-      this.items[i].status = 40;
-      this.$toast('已确认收货');
+      this.$reqPut(ORDER+'/'+this.tabsItem[this.activeIndex].items[i].id).then(() => {
+        this.tabsItem[this.activeIndex].items[i].status = 3;
+        this.$toast('已确认收货');
+      })
     },
     reminderOrder(i) {
-      this.items[i].is_can_reminder = false;
       this.$toast('已提醒卖家发货, 请耐心等待哦~');
     },
     toPay(i) {
-      const id = this.items[i].id;
-      this.$router.push({ name: 'payment', params: { order_id: id } });
+      const id = this.tabsItem[this.activeIndex].items[i].id;
+      const totalPrice = this.tabsItem[this.activeIndex].items[i].totalPrice;
+      this.$router.push({ name: 'payment', params: { id: id, totalPrice: totalPrice} });
     },
     handleTabClick(index) {
       this.$router.replace({
@@ -176,10 +171,11 @@ export default {
       return STATUS_TEXT[status] || '';
     },
     toOrderDetail(i) {
-      const order_id = this.items[i].id;
-      this.$router.push({ name: 'user-order-detail', params: { order_id } });
+      const order_id = this.tabsItem[this.activeIndex].items[i].id
+      this.$router.push({ name: 'user-order-detail', params: { order_id: order_id, status: 'buy' } });
     },
     actionHandle(handle, i) {
+      console.log(handle)
       this[handle] && this[handle](i);
     }
   },
@@ -190,14 +186,10 @@ export default {
     [Panel.name]: Panel,
     [Card.name]: Card,
     [List.name]: List,
-    status10,
-    status20,
-    status25,
-    status30,
-    status40,
-    status50,
-    status60,
-    status70
+    status0,
+    status1,
+    status2,
+    status3
   }
 };
 </script>

@@ -14,7 +14,6 @@
 				</template>
 			</van-cell>
 		</van-cell-group>
-
 		<div class="group_banner" v-if="setting && setting.banner">
 			<img v-lazy="setting.banner" alt="海报" width="100%">
 		</div>

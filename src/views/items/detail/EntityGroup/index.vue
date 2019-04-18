@@ -1,45 +1,65 @@
 <template>
-	<div class="item_cell_group">
-		<van-cell-group>
-			<van-cell title="选择规格" isLink :value="selectSku.selectedSkuComb.sku_str" @click.native="skuClick" />
-			<van-cell title="商品属性" isLink @click.native="propsPopup = true" />
-			<van-cell title="配送至" isLink :value="addressVal.area_name"  @click.native="addressPopup = true" />
-			<van-cell title="运费" :value="postFee | yuan"/>
-		</van-cell-group>
+  <div class="item_cell_group">
+    <van-cell-group>
+      <van-cell
+        title="选择规格"
+        isLink
+        :value="selectSku.selectedSkuComb.sku_str"
+        @click.native="skuClick"
+      />
+      <van-cell title="商品属性" isLink @click.native="propsPopup = true" />
+      <van-cell
+        title="配送至"
+        isLink
+        :value="addressVal.school"
+        @click.native="addressPopup = true"
+      />
+      <van-cell
+        title="配送方式"
+        isLink
+        :value="postFee"
+        @click.native="postShow = true"
+      />
+    </van-cell-group>
 
-		<van-sku
-			v-model="showSku"
-			:showAddCartBtn="showAddCartBtn"
-			:buyText="buyText"
-			:sku="skus.sku"
-			:goods="skus.goods_info"
-			:goodsId="goodsInfo.id"
-			:disableStepperInput="true"
-			@buy-clicked="buyGoods"
-		/>
+    <van-sku
+      v-model="showSku"
+      :showAddCartBtn="showAddCartBtn"
+      :buyText="buyText"
+      :sku="skus.sku"
+      :goods="skus.goods_info"
+      :goodsId="goodsInfo.id"
+      :disableStepperInput="true"
+      @buy-clicked="buyGoods"
+    />
 
-		<van-popup v-model="propsPopup"  position="bottom">
-			<popup-props :propsStr="props_str"></popup-props>
-		</van-popup>
+    <van-popup v-model="propsPopup" position="bottom">
+      <popup-props :propsStr="props_str"></popup-props>
+    </van-popup>
 
-		<van-popup v-model="areaPopup" position="bottom">
-			<popup-area
-				v-if="areaPopup"
-				@confirm="emitAddressVal"
-				@cancel="areaPopup = false"
-			/>
-		</van-popup>
+    <van-popup v-model="areaPopup" position="bottom">
+      <popup-area
+        v-if="areaPopup"
+        @confirm="emitAddressVal"
+        @cancel="areaPopup = false"
+      />
+    </van-popup>
 
-		<van-popup v-model="addressPopup" position="bottom">
-			<popup-address
-				:is-show="addressPopup"
-				:addressVal="addressVal"
+    <van-popup v-model="addressPopup" position="bottom">
+      <popup-address
+        :is-show="addressPopup"
+        :addressVal="addressVal"
         :default-id="defaultId"
-				@confirm="emitAddressVal"
-				@area-click="areaClick"
-			/>
-		</van-popup>
-	</div>
+        @confirm="emitAddressVal"
+        @area-click="areaClick"
+      />
+    </van-popup>
+    <van-actionsheet
+      v-model="postShow"
+      :actions="postVal"
+      @select="emitPostVal"
+    />
+  </div>
 </template>
 
 <script>
@@ -49,6 +69,7 @@ import popupAddress from './popup-address';
 import popupProps from './popup-props';
 import actionMixin from '../mix';
 import { ADDRESS_DEFAULT } from '@/api/user';
+import { Actionsheet } from 'vant';
 // import { POST_FEE } from '@/api/shop';
 
 export default {
@@ -74,29 +95,36 @@ export default {
   data() {
     const sku = this.skuAdapter(this.goodsInfo.skus, this.goodsInfo.prop_imgs);
     const goods_info = this.setSkuGoodsInfo(this.goodsInfo);
-    const postFee = this.goodsInfo.is_fenxiao ? '免邮费' : '';
+    const postFee = '自提';
     return {
       postFee,
       propsPopup: false,
       addressPopup: false,
+      postShow: false,
       areaPopup: false,
       skus: {
         sku,
         goods_info
       },
-      defaultId: -1
+      defaultId: -1,
+      postVal: [
+        {
+          name: '自提'
+        },
+        {
+          name: '快递'
+        }
+      ]
     };
   },
 
   computed: {
     props_str() {
-      if (this.goodsInfo.props_str) {
-        return this.goodsInfo.props_str
-          .split(';')
-          .filter(str => str != '')
-          .map(str => str.split(':'));
-      }
-      return [];
+      let props = [
+        {key: '类别',value: this.goodsInfo.cate},
+        {key: '物品名称', value: this.goodsInfo.name}
+      ];
+      return props;
     },
     weight() {
       return parseFloat(this.goodsInfo.weight) * this.selectSku.selectedNum;
@@ -108,6 +136,10 @@ export default {
   },
 
   methods: {
+    emitPostVal(item) {
+      this.postFee = item.name;
+      this.postShow = false;
+    },
     areaClick() {
       this.areaPopup = true;
       this.addressPopup = false;
@@ -115,11 +147,11 @@ export default {
     emitAddressVal(data) {
       this.$emit('update:addressVal', data);
     },
-    setSkuGoodsInfo({ name, pic_url, sales_price }) {
+    setSkuGoodsInfo({ name, images, price }) {
       return {
         title: name,
-        picture: pic_url,
-        price: sales_price
+        picture: images[0].picUrl,
+        price: price
       };
     },
     getAddressDefault() {
@@ -134,8 +166,8 @@ export default {
       const tree = this.setSkuTree(skus, prop_imgs);
       const list = this.setSkuList(skus);
       const skuInfo = {
-        price: parseInt(this.goodsInfo.sales_price) / 100, // 未选择规格时的价格
-        stock_num: this.goodsInfo.quantity, // 总库存
+        price: parseInt(this.goodsInfo.price) / 100, // 未选择规格时的价格
+        stock_num: this.goodsInfo.num, // 总库存
         collection_id: '', // 无规格商品skuId取collection_id，否则取所选sku组合对应的id
         none_sku: false, // 是否无规格商品
         hide_stock: false
@@ -152,10 +184,10 @@ export default {
           sku[`s${i + 1}`] = str.match(/[^:]*:([^:]*)/)[1];
         });
         // key值转换适配, 后端数据和组件要求的key不一致
-        sku.stock_num = sku.quantity;
+        sku.stock_num = sku.num;
         sku.goods_id = sku.props;
         sku.sku_str = sku.props_str;
-        sku.price = sku.sales_price;
+        sku.price = sku.price;
       });
       return skus;
     },
@@ -208,10 +240,10 @@ export default {
   components: {
     popupArea,
     [popupAddress.name]: popupAddress,
-    [popupProps.name]: popupProps
+    [popupProps.name]: popupProps,
+    [Actionsheet.name]: Actionsheet
   }
 };
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

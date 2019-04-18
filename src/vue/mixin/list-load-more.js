@@ -2,7 +2,7 @@ export default {
   data() {
     return {
       pages: {
-        perPage: 8,
+        limit: 8,
         currPage: 1,
         pageCount: 1
       },

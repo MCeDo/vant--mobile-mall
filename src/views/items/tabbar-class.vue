@@ -6,7 +6,7 @@
 		</div>
 		<class-tree
       class="height-fix42"
-			@class-click="toItemList"
+			@class-click="toItemDetail"
 			@all-click="toItemList"
 			:list="list"
 		></class-tree>
@@ -18,11 +18,9 @@
 <script>
 import { GOODS_CATEGORY } from '@/api/goods';
 
-import getLocationParam from 'core/utils/location-param';
 import { Search } from 'vant';
 import classTree from './tabbar-class-tree';
 import IsEmpty from '@/vue/components/is-empty';
-import _ from 'lodash';
 
 export default {
   data() {
@@ -38,18 +36,11 @@ export default {
 
   methods: {
     initData() {
-      const shop_id = getLocationParam('shop_id');
-      this.$reqGet(`${GOODS_CATEGORY}/${shop_id}`).then(res => {
-        const data = this.removeNoChild(res.data.data);
-        new Array(30).fill(1).forEach(() => {
-          var b = _.cloneDeep(_.last(data));
-          b.id++;
-
-          b.children.push(_.cloneDeep(_.last(b.children)));
-          data.push(b);
-        });
-        this.list = data;
-        this.isEmpty = !data || !data.length;
+      this.$reqGet(`${GOODS_CATEGORY}`).then(res => {
+        // const data = this.removeNoChild(res.data.data);
+        const data = res.data.data;
+        this.list = data.records;
+        this.isEmpty = !data.records || !data.records.length;
       });
     },
     removeNoChild(data) {
@@ -58,8 +49,15 @@ export default {
     toItemList(id = '') {
       this.$router.push({
         name: 'list',
-        query: { keyword: '', itemClass: id }
+        query: { keyword: '', cateId: id }
       });
+    },
+    toItemDetail(id = '') {
+    	console.log('ddd')
+	  this.$router.push({
+		  path: '/items/detail/'+id,
+		  query: { keyword: '', itemId: id }
+	  });
     }
   },
   components: {

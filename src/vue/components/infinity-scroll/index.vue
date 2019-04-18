@@ -37,11 +37,11 @@ export default {
     },
     resKey: {
       type: String,
-      default: 'data.items'
+      default: 'data.records'
     },
     pageKey: {
       type: String,
-      default: 'data.page'
+      default: 'data'
     },
     emptyText: {
       type: String,
@@ -65,11 +65,11 @@ export default {
     },
     async initData() {
       const { params = {}, headers = {} } = this.beforeInitData();
-      const prePage = this.perPage || this.pages.perPage;
+      const prePage = this.perPage || this.pages.limit;
       const res = await this.$reqGet(
         this.apiUrl,
         {
-          'per-page': prePage,
+          'limit': prePage,
           page: this.pages.currPage,
           ...params
         },
@@ -77,7 +77,12 @@ export default {
       );
       await this.sleep(1000);
       const items = get(res.data, this.resKey, []);
-      const page = get(res.data, this.pageKey, null);
+      const data = res.data.data;
+      const page = {
+        limit: data.size,
+        currPage: data.current,
+        pageCount: data.pages
+      }
       this.$emit('onLoad', items);
       return page;
     },

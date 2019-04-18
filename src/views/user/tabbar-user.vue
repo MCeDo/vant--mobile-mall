@@ -2,7 +2,7 @@
 	<div class="tabbar-user">
 		<user-header :isLogin="isLogin" />
 		<order-group />
-		<ecoupon-group />
+		<!--<ecoupon-group />-->
 		<user-module />
 		<van-button  size="large" class="tabbar-user__quit" v-if="isLogin" @click="quit">退出当前账户</van-button>
 	</div>
@@ -31,17 +31,18 @@ export default {
     quit() {
       removeLocalStorage(
         'Authorization',
-        'user_id',
+        'userId',
         'avatar',
         'background_image',
-        'nick_name'
+        'nickname'
       );
       this.$router.push({ name: 'login' });
     },
     getLoginStatus() {
+      console.log(localStorage.getItem('userId'));
       this.isLogin =
         !!localStorage.getItem('Authorization') &&
-        !!localStorage.getItem('user_id');
+        !!localStorage.getItem('userId');
     }
   },
 

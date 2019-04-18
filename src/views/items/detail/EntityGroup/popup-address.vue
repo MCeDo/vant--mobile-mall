@@ -6,14 +6,9 @@
 			<van-loading v-if="!addressReady" class="address_popup_load" type="circle" color="black" />
 			<div v-for="(li, i) in address_list" :key="i" @click="listChoose(li)">
 				<van-tag plain type="danger" style="margin-right: 5px;" v-if="li.isDefault">默认</van-tag>
-				{{li.area_name + li.address}}
+				{{li.school + li.address}}
 				<van-icon name="success" class="address_active" v-show="addressVal.id == li.id"></van-icon>
 			</div>
-		</div>
-		<div class="popup_footer">
-			<van-cell-group>
-				<van-cell is-link title="其他区域" @click.native="areaChoose"></van-cell>
-			</van-cell-group>
 		</div>
 	</div>
 </template>
